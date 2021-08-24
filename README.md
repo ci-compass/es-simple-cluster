@@ -64,3 +64,14 @@ This path typically gets passed to components like:
     environment:
       - AVRO_SCHEMAS_ROOT=/avro_schemas
 
+## Kafka brokers and schema registry
+
+Use the following to connect to kafka.
+
+For code running internal to docker-compose network
+BOOTSTRAP_SERVERS="broker:9092"
+SCHEMA_REGISTRY_URL="http://schema-registry:8081"
+
+Code running on local machine, not in docker-compose env
+BOOTSTRAP_SERVERS='localhost:19092'
+SCHEMA_REGISTRY_URL='http://localhost:8081'
