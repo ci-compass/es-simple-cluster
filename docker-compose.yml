@@ -242,9 +242,13 @@ services:
     environment:
       GF_INSTALL_PLUGINS: "grafana-worldmap-panel"
 
+  obspy-plotter:
+    build: obspy-plotter
+    ports:
+      - "5001:5000"
 
   ###
-   #Example data service containers
+  # Example data service containers
   ###
 
   # Example web interfaces (collection and distribution)
