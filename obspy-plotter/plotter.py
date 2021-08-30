@@ -3,6 +3,8 @@ from mpl_plotter import Plotter
 from urllib.parse import urlencode
 
 app = Flask(__name__)
+app.secret_key = b'3)\xe2z\x1f\xcd\xd3\x1c\xb5\x04\\j\xe6\x0b02'
+
 plotter = Plotter()
 
 @app.route("/")
