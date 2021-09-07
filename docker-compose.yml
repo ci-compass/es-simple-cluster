@@ -8,7 +8,11 @@ services:
   # - external port mapping
   # as these are frequent sources of contention and random errors.
 
-  # REQUIRED for kafka
+
+  ###
+  # Base Kafka services
+  ###
+
   # Apache zookeeper does what now?
   zookeeper:
     image: confluentinc/cp-zookeeper:6.1.1
@@ -19,7 +23,6 @@ services:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
 
-  # REQUIRED for kafka
   # The kafka broker
   broker:
     image: confluentinc/cp-server:6.1.1
@@ -49,11 +52,7 @@ services:
       CONFLUENT_METRICS_REPORTER_TOPIC_REPLICAS: 1
       CONFLUENT_METRICS_ENABLE: 'true'
       CONFLUENT_SUPPORT_CUSTOMER_ID: 'anonymous'
-    # If disconnected from a volume, rebuilding will reset
-    # volumes:
-    #   - kafka-data:/var/lib/kafka/data
 
-  # REQUIRED for kafka
   # Registry for kafka message schemas
   schema-registry:
     image: confluentinc/cp-schema-registry:6.1.1
@@ -67,29 +66,11 @@ services:
       SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: 'broker:29092'
       SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
 
-  # Example producer for strainmeter bottle files.  contains 1 Day, Hour, and Min file, which it reads, parses, and produces to the kafka topic gtsm_etl
-  strain-producer:
-    image: unavdocker/strain_bottle_producer_prototype:latest
-    hostname: strain-producer
-    depends_on:
-      - broker
-      - schema-registry
-    environment:
-      BOOTSTRAP_SERVERS: "broker:9092"
-      SCHEMA_REGISTRY_URL: "http://schema-registry:8081"
-  
-    # Example producer for ggkx (gnss real time positions).  connects to station 
-  ggkx-producer:
-    image: unavdocker/ccp_ggkx_producer:latest
-    hostname: ggkx-producer
-    restart: unless-stopped
-    depends_on:
-      - broker
-      - schema-registry
-    environment:
-      BOOTSTRAP_SERVERS: "broker:9092"
-      SCHEMA_REGISTRY_URL: "http://schema-registry:8081"
-  
+
+  ###
+  # Kafka UI (confluent)
+  ###
+
   connect:
     image: cnfldemos/cp-server-connect-datagen:0.5.0-6.2.0
     hostname: connect
@@ -167,31 +148,65 @@ services:
       KSQL_KSQL_LOGGING_PROCESSING_TOPIC_AUTO_CREATE: 'true'
       KSQL_KSQL_LOGGING_PROCESSING_STREAM_AUTO_CREATE: 'true'
 
-  # Web front-end
-  web:
-    image: nginx
-    volumes:
-      # Define a base nginx path in our subdirectory
-      - ./nginx:/etc/nginx
-      # Map the static subpath to a volume
-      - web-static:/etc/nginx/html/static
-    ports:
-      # The main web interface
-      - 8080:80
-      # HTTPS
-      - 8443:443
-      # Super simple nginx server
-      # - 8181:81
-    depends_on:
-      - django-web
 
-  # Vouch-proxy (CILogon integration with nginx)
-  vouch-proxy:
-    image: voucher/vouch-proxy:latest
-    volumes:
-      - ./vouch-proxy:/config
-    # ports:
-    #   - 9090:9090
+  ###
+  # Kafka UI (landoop)
+  ###
+
+  # RESTful proxy for kafka
+  rest-proxy:
+    image: confluentinc/cp-kafka-rest:6.1.1
+    hostname: rest-proxy
+    depends_on:
+      - broker
+      - schema-registry
+    ports:
+      - 8082:8082
+    environment:
+      KAFKA_REST_HOST_NAME: rest-proxy
+      KAFKA_REST_BOOTSTRAP_SERVERS: 'broker:29092'
+      KAFKA_REST_LISTENERS: "http://0.0.0.0:8082"
+      KAFKA_REST_SCHEMA_REGISTRY_URL: 'http://schema-registry:8081'
+
+  landoop:
+    image: landoop/kafka-topics-ui
+    ports:
+      - 8093:8000
+    environment:
+      KAFKA_REST_PROXY_URL: http://rest-proxy:8082
+      PROXY: 'true'
+
+
+  ###
+  # Example producers
+  ###
+
+  # Example producer for strainmeter bottle files.  contains 1 Day, Hour, and Min file, which it reads, parses, and produces to the kafka topic gtsm_etl
+  strain-producer:
+    image: unavdocker/strain_bottle_producer_prototype:latest
+    hostname: strain-producer
+    depends_on:
+      - broker
+      - schema-registry
+    environment:
+      BOOTSTRAP_SERVERS: "broker:9092"
+      SCHEMA_REGISTRY_URL: "http://schema-registry:8081"
+  
+    # Example producer for ggkx (gnss real time positions).  connects to station 
+  ggkx-producer:
+    image: unavdocker/ccp_ggkx_producer:latest
+    hostname: ggkx-producer
+    restart: unless-stopped
+    depends_on:
+      - broker
+      - schema-registry
+    environment:
+      BOOTSTRAP_SERVERS: "broker:9092"
+      SCHEMA_REGISTRY_URL: "http://schema-registry:8081"
+  
+  ###
+  # Storage services
+  ###
 
   # Postgres database
   postgres:
@@ -218,49 +233,51 @@ services:
     # ports:
     #     - "9432:5432"
 
-  # Prometheus metrics
-  prometheus:
-    image: prom/prometheus
-    volumes:
-      # Persistent data volume
-      - prometheus:/prometheus
-      # Local config
-      - ./prometheus/config:/etc/prometheus
-    # ports:
-    #   - "9091:9090"
+  ###
+  # Web stack
+  ###
 
-  # Grafana front-end
-  grafana:
-    image: grafana/grafana:latest
+  # Web front-end
+  web:
+    image: nginx
     volumes:
-      # Persistent data volume
-      - grafana:/var/lib/grafana
-      # Local config
-      - ./grafana/config:/etc/grafana
+      # Define a base nginx path in our subdirectory
+      - ./nginx:/etc/nginx
+      # Map the static subpath to a volume
+      - web-static:/etc/nginx/html/static
     ports:
-      - "3001:3000"
-    environment:
-      GF_INSTALL_PLUGINS: "grafana-worldmap-panel"
+      # The main web interface
+      - 8080:80
+      # HTTPS
+      - 8443:443
+      # Super simple nginx server
+      # - 8181:81
+    depends_on:
+      - django-web
+
+  # Vouch-proxy (CILogon integration with nginx)
+  vouch-proxy:
+    image: voucher/vouch-proxy:latest
+    volumes:
+      - ./vouch-proxy:/config
+    # ports:
+    #   - 9090:9090
 
 
   ###
-   #Example data service containers
+  # Example python applications
   ###
 
   # Example web interfaces (collection and distribution)
   django-web:
     # GitHub repository image
     image: ghcr.io/earthscope/es-example-django:main
-    # Or link/submodule to a subdirectory
-    # build: ../es-example-django
     command: gunicorn -c ./gunicorn.conf.py
     volumes:
       # AVRO schemas
       - ./avro_schemas:/avro_schemas:ro
       # Static files area
       - web-static:/web-static
-      # For local development, can link to sources
-      # - ../es-example-django:/es-example-django
     env_file:
       # see https://docs.docker.com/compose/environment-variables/#the-env_file-configuration-option
       - ./docker.env
@@ -275,8 +292,6 @@ services:
   django-archiver:
     # GitHub repository image
     image: ghcr.io/earthscope/es-example-django:main
-    # Or link/submodule to a subdirectory
-    # build: ../es-example-django
     command: python manage.py run_kafka_consumer
     depends_on:
       - broker
@@ -284,15 +299,12 @@ services:
     volumes:
       # AVRO schemas
       - ./avro_schemas:/avro_schemas:ro
-      # For local development, can link to sources
-      # - ../es-example-django:/es-example-django
     env_file:
       # see https://docs.docker.com/compose/environment-variables/#the-env_file-configuration-option
       - ./docker.env
 
 # Volumes are local by default, but could be backed by test/prod datasources
 volumes:
-  kafka-data:
   postgres-data:
   web-static:
   prometheus:
