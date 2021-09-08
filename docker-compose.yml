@@ -67,90 +67,10 @@ services:
       SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
 
 
-  ###
-  # Kafka UI (confluent)
-  ###
-
-  connect:
-    image: cnfldemos/cp-server-connect-datagen:0.5.0-6.2.0
-    hostname: connect
-    container_name: connect
-    depends_on:
-      - broker
-      - schema-registry
-    ports:
-      - "8083:8083"
-    environment:
-      CONNECT_BOOTSTRAP_SERVERS: 'broker:29092'
-      CONNECT_REST_ADVERTISED_HOST_NAME: connect
-      CONNECT_REST_PORT: 8083
-      CONNECT_GROUP_ID: compose-connect-group
-      CONNECT_CONFIG_STORAGE_TOPIC: docker-connect-configs
-      CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: 1
-      CONNECT_OFFSET_FLUSH_INTERVAL_MS: 10000
-      CONNECT_OFFSET_STORAGE_TOPIC: docker-connect-offsets
-      CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: 1
-      CONNECT_STATUS_STORAGE_TOPIC: docker-connect-status
-      CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: 1
-      CONNECT_KEY_CONVERTER: org.apache.kafka.connect.storage.StringConverter
-      CONNECT_VALUE_CONVERTER: io.confluent.connect.avro.AvroConverter
-      CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL: http://schema-registry:8081
-      # CLASSPATH required due to CC-2422
-      CLASSPATH: /usr/share/java/monitoring-interceptors/monitoring-interceptors-6.2.0.jar
-      CONNECT_PRODUCER_INTERCEPTOR_CLASSES: "io.confluent.monitoring.clients.interceptor.MonitoringProducerInterceptor"
-      CONNECT_CONSUMER_INTERCEPTOR_CLASSES: "io.confluent.monitoring.clients.interceptor.MonitoringConsumerInterceptor"
-      CONNECT_PLUGIN_PATH: "/usr/share/java,/usr/share/confluent-hub-components"
-      CONNECT_LOG4J_LOGGERS: org.apache.zookeeper=ERROR,org.I0Itec.zkclient=ERROR,org.reflections=ERROR
-
-  control-center:
-    image: confluentinc/cp-enterprise-control-center:6.2.0
-    hostname: control-center
-    container_name: control-center
-    depends_on:
-      - broker
-      - schema-registry
-      - connect
-      - ksqldb-server
-    ports:
-      - "9021:9021"
-    environment:
-      CONTROL_CENTER_BOOTSTRAP_SERVERS: 'broker:29092'
-      CONTROL_CENTER_CONNECT_CONNECT-DEFAULT_CLUSTER: 'connect:8083'
-      CONTROL_CENTER_KSQL_KSQLDB1_URL: "http://ksqldb-server:8088"
-      CONTROL_CENTER_KSQL_KSQLDB1_ADVERTISED_URL: "http://localhost:8088"
-      CONTROL_CENTER_SCHEMA_REGISTRY_URL: "http://schema-registry:8081"
-      CONTROL_CENTER_REPLICATION_FACTOR: 1
-      CONTROL_CENTER_INTERNAL_TOPICS_PARTITIONS: 1
-      CONTROL_CENTER_MONITORING_INTERCEPTOR_TOPIC_PARTITIONS: 1
-      CONFLUENT_METRICS_TOPIC_REPLICATION: 1
-      PORT: 9021
-
-  ksqldb-server:
-    image: confluentinc/cp-ksqldb-server:6.2.0
-    hostname: ksqldb-server
-    container_name: ksqldb-server
-    depends_on:
-      - broker
-      - connect
-    ports:
-      - "8088:8088"
-    environment:
-      KSQL_CONFIG_DIR: "/etc/ksql"
-      KSQL_BOOTSTRAP_SERVERS: "broker:29092"
-      KSQL_HOST_NAME: ksqldb-server
-      KSQL_LISTENERS: "http://0.0.0.0:8088"
-      KSQL_CACHE_MAX_BYTES_BUFFERING: 0
-      KSQL_KSQL_SCHEMA_REGISTRY_URL: "http://schema-registry:8081"
-      KSQL_PRODUCER_INTERCEPTOR_CLASSES: "io.confluent.monitoring.clients.interceptor.MonitoringProducerInterceptor"
-      KSQL_CONSUMER_INTERCEPTOR_CLASSES: "io.confluent.monitoring.clients.interceptor.MonitoringConsumerInterceptor"
-      KSQL_KSQL_CONNECT_URL: "http://connect:8083"
-      KSQL_KSQL_LOGGING_PROCESSING_TOPIC_REPLICATION_FACTOR: 1
-      KSQL_KSQL_LOGGING_PROCESSING_TOPIC_AUTO_CREATE: 'true'
-      KSQL_KSQL_LOGGING_PROCESSING_STREAM_AUTO_CREATE: 'true'
-
+ 
 
   ###
-  # Kafka UI (landoop)
+  # Kafka UIs (landoop)
   ###
 
   # RESTful proxy for kafka
@@ -168,14 +88,28 @@ services:
       KAFKA_REST_LISTENERS: "http://0.0.0.0:8082"
       KAFKA_REST_SCHEMA_REGISTRY_URL: 'http://schema-registry:8081'
 
-  landoop:
+  # viewable at localhost:8093
+  landoop-topics-ui:
     image: landoop/kafka-topics-ui
     ports:
       - 8093:8000
+    depends_on:
+      - rest-proxy
     environment:
       KAFKA_REST_PROXY_URL: http://rest-proxy:8082
       PROXY: 'true'
-
+      
+  # viewable at localhost:8094
+  landoop-schema-ui:
+    image: landoop/schema-registry-ui
+    ports:
+      - 8094:8000
+    depends_on:
+      - rest-proxy
+      - schema-registry
+    environment:
+      SCHEMAREGISTRY_URL: "http://schema-registry:8081"
+      PROXY: 'true'
 
   ###
   # Example producers
@@ -192,7 +126,7 @@ services:
       BOOTSTRAP_SERVERS: "broker:9092"
       SCHEMA_REGISTRY_URL: "http://schema-registry:8081"
   
-    # Example producer for ggkx (gnss real time positions).  connects to station 
+  # Example producer for ggkx (gnss real time positions).  connects to station 
   ggkx-producer:
     image: unavdocker/ccp_ggkx_producer:latest
     hostname: ggkx-producer
@@ -204,108 +138,133 @@ services:
       BOOTSTRAP_SERVERS: "broker:9092"
       SCHEMA_REGISTRY_URL: "http://schema-registry:8081"
   
+  # Example producer, connects to rtserve and pulls all stations data for HL network, produces as kafka messages to topic binarypackets
+  slinkproducer:
+    image: unavdocker/slinkproducer:v1
+    hostname: slinkproducer
+    container_name: slinkproducer-kafka-2
+    depends_on:
+      - broker
+      - schema-registry
+      - control-center
+    ports:
+      - "3000:3000"
+      - "18000:18000"
+    environment:
+      BROKER_HOSTS: "broker:9092"
+      REGISTRY_URLS: "http://schema-registry:8081"
+      TOPIC_NAME: 'binarypackets'
+      RUN_MODE: 'P'
+      DATA_SELECTION: 'HL_*'
+      DATA_SERVER: 'rtserve.iris.washington.edu:18000'
+      DATA_LOCAL_FOLDER: 'data_producer_kafka_2'
+      START_SLEEP_SECONDS: 90
+#    volumes:
+#      - ${HOST_PARENT_FOLDER}/data_producer_kafka_2:/root/slinkkafka/data_producer_kafka_2
+  
+  
   ###
   # Storage services
   ###
 
-  # Postgres database
-  postgres:
-    image: postgres
-    volumes:
-      - postgres-data:/var/lib/postgresql/data
-    env_file:
-      # see https://docs.docker.com/compose/environment-variables/#the-env_file-configuration-option
-      - ./docker.env
-    # ports:
-    #   - 8432:5432
-
-  # Redis key/value store
-  redis:
-    image: redis
-    # ports:
-    #   - 6379:6379
-
-  # TimescaleDB
-  timescaledb:
-    image: timescale/timescaledb:latest-pg12
-    environment:
-        POSTGRES_PASSWORD: "password"
-    # ports:
-    #     - "9432:5432"
+#  # Postgres database
+#  postgres:
+#    image: postgres
+#    volumes:
+#      - postgres-data:/var/lib/postgresql/data
+#    env_file:
+#      # see https://docs.docker.com/compose/environment-variables/#the-env_file-configuration-option
+#      - ./docker.env
+#    # ports:
+#    #   - 8432:5432
+#
+#  # Redis key/value store
+#  redis:
+#    image: redis
+#    # ports:
+#    #   - 6379:6379
+#
+#  # TimescaleDB
+#  timescaledb:
+#    image: timescale/timescaledb:latest-pg12
+#    environment:
+#        POSTGRES_PASSWORD: "password"
+#    # ports:
+#    #     - "9432:5432"
 
   ###
   # Web stack
   ###
 
-  # Web front-end
-  web:
-    image: nginx
-    volumes:
-      # Define a base nginx path in our subdirectory
-      - ./nginx:/etc/nginx
-      # Map the static subpath to a volume
-      - web-static:/etc/nginx/html/static
-    ports:
-      # The main web interface
-      - 8080:80
-      # HTTPS
-      - 8443:443
-      # Super simple nginx server
-      # - 8181:81
-    depends_on:
-      - django-web
-
-  # Vouch-proxy (CILogon integration with nginx)
-  vouch-proxy:
-    image: voucher/vouch-proxy:latest
-    volumes:
-      - ./vouch-proxy:/config
-    # ports:
-    #   - 9090:9090
-
-
-  ###
-  # Example python applications
-  ###
-
-  # Example web interfaces (collection and distribution)
-  django-web:
-    # GitHub repository image
-    image: ghcr.io/earthscope/es-example-django:main
-    command: gunicorn -c ./gunicorn.conf.py
-    volumes:
-      # AVRO schemas
-      - ./avro_schemas:/avro_schemas:ro
-      # Static files area
-      - web-static:/web-static
-    env_file:
-      # see https://docs.docker.com/compose/environment-variables/#the-env_file-configuration-option
-      - ./docker.env
-    # Local env on top of env_file
-    environment:
-      - DJANGO_PROMETHEUS=1
-    ports:
-      - 8100:8000
-      - 9100:9000
-
-  # Example data archiver
-  django-archiver:
-    # GitHub repository image
-    image: ghcr.io/earthscope/es-example-django:main
-    command: python manage.py run_kafka_consumer
-    depends_on:
-      - broker
-      - schema-registry
-    volumes:
-      # AVRO schemas
-      - ./avro_schemas:/avro_schemas:ro
-    env_file:
-      # see https://docs.docker.com/compose/environment-variables/#the-env_file-configuration-option
-      - ./docker.env
-
-# Volumes are local by default, but could be backed by test/prod datasources
-volumes:
-  postgres-data:
-  web-static:
-  prometheus:
-  grafana:
+#  # Web front-end
+#  web:
+#    image: nginx
+#    volumes:
+#      # Define a base nginx path in our subdirectory
+#      - ./nginx:/etc/nginx
+#      # Map the static subpath to a volume
+#      - web-static:/etc/nginx/html/static
+#    ports:
+#      # The main web interface
+#      - 8080:80
+#      # HTTPS
+#      - 8443:443
+#      # Super simple nginx server
+#      # - 8181:81
+#    depends_on:
+#      - django-web
+#
+#  # Vouch-proxy (CILogon integration with nginx)
+#  vouch-proxy:
+#    image: voucher/vouch-proxy:latest
+#    volumes:
+#      - ./vouch-proxy:/config
+#    # ports:
+#    #   - 9090:9090
+#
+#
+#  ###
+#  # Example python applications
+#  ###
+#
+#  # Example web interfaces (collection and distribution)
+#  django-web:
+#    # GitHub repository image
+#    image: ghcr.io/earthscope/es-example-django:main
+#    command: gunicorn -c ./gunicorn.conf.py
+#    volumes:
+#      # AVRO schemas
+#      - ./avro_schemas:/avro_schemas:ro
+#      # Static files area
+#      - web-static:/web-static
+#    env_file:
+#      # see https://docs.docker.com/compose/environment-variables/#the-env_file-configuration-option
+#      - ./docker.env
+#    # Local env on top of env_file
+#    environment:
+#      - DJANGO_PROMETHEUS=1
+#    ports:
+#      - 8100:8000
+#      - 9100:9000
+#
+#  # Example data archiver
+#  django-archiver:
+#    # GitHub repository image
+#    image: ghcr.io/earthscope/es-example-django:main
+#    command: python manage.py run_kafka_consumer
+#    depends_on:
+#      - broker
+#      - schema-registry
+#    volumes:
+#      # AVRO schemas
+#      - ./avro_schemas:/avro_schemas:ro
+#    env_file:
+#      # see https://docs.docker.com/compose/environment-variables/#the-env_file-configuration-option
+#      - ./docker.env
+#
+## Volumes are local by default, but could be backed by test/prod datasources
+#volumes:
+#  postgres-data:
+#  web-static:
+#  prometheus:
+#  grafana:
