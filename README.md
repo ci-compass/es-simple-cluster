@@ -22,8 +22,10 @@ Ideally, every available service should be included in this project, but for any
   - Kafka zookeeper
 - **schema-registry** (core)
   - Kafka schema registry
-- **confluent control center** (core)
-  - Kafka UI, should be swapped out for open source version in future
+- **landoop topics UI** (core)
+  - Kafka topics UI
+- **landoop schema registry UI** (core)
+  - Kafka schema registry UI
 - **nginx** (core)
   - external web interface
 - **vouch-proxy**
@@ -78,14 +80,20 @@ Code running on local machine, not in docker-compose env
 BOOTSTRAP_SERVERS='localhost:19092'
 SCHEMA_REGISTRY_URL='http://localhost:8081'
 
-## Kafka UI
+## Kafka UIs
 
-You can view the Confluent Control Center at localhost:9021
+topics UI
+landoop free UI, shows topics and messages
+localhost:8093
 
-This interface is useful to view kafka topics, schemas, and messages.  This version is proprietary and will not be used in the final platform.  There are other open source options such as landoop topic ui and schema registry ui but I couldnt get those configured correctly so for now this works.
+schema registry UI
+landoop free UI, shows schemas
+localhost:8094
 
 ## Data collection prototype components so far
 
 strain-producer - image contains sample gtsm bottle files, which it reads in and produces to topic 'gtsm_etl' based on the schema 'gtsm_etl.avsc'.  container exits when done reading files.
 
 ggkx-producer - container connects to RT-GNSS GGKX stream (NTRIP Castor) for station P225 and produces 1 sample per second messages containing an epoch of data.  Uses all_GNSS_position_metadata.avsc schema, and includes original ggkx data and also maps to unified 'position' schema.
+
+slink-producer - connects to rtserve and produces packets from network code HL to topic 'binarypackets'
