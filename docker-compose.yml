@@ -280,6 +280,7 @@ services:
       - elasticsearch
     environment:
       FLINK_JOBMANAGER_HOST: jobmanager
+      # TODO: need to specify different port to match the jobmanager web port 8083
       ZOOKEEPER_CONNECT: zookeeper
       KAFKA_BOOTSTRAP: broker
       MYSQL_HOST: mysql
@@ -288,12 +289,14 @@ services:
   jobmanager:
     image: flink:1.11.0-scala_2.11
     ports:
-      - "8081:8081"
+      - "8083:8083"
     command: jobmanager
     environment:
       - |
         FLINK_PROPERTIES=
         jobmanager.rpc.address: jobmanager
+        # added to bind to a different port
+        jobmanager.web.port: 8083
 
   taskmanager:
     image: flink:1.11.0-scala_2.11
