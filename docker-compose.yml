@@ -126,41 +126,41 @@ services:
       BOOTSTRAP_SERVERS: "broker:9092"
       SCHEMA_REGISTRY_URL: "http://schema-registry:8081"
   
-  # Example producer for ggkx (gnss real time positions).  connects to station 
-  ggkx-producer:
-    image: unavdocker/ccp_ggkx_producer:latest
-    hostname: ggkx-producer
-    restart: unless-stopped
-    depends_on:
-      - broker
-      - schema-registry
-    environment:
-      BOOTSTRAP_SERVERS: "broker:9092"
-      SCHEMA_REGISTRY_URL: "http://schema-registry:8081"
-  
-  # Example producer, connects to rtserve and pulls all stations data for HL network, produces as kafka messages to topic binarypackets
-  slinkproducer:
-    image: unavdocker/slinkproducer:v1
-    hostname: slinkproducer
-    container_name: slinkproducer-kafka-2
-    depends_on:
-      - broker
-      - schema-registry
-      - control-center
-    ports:
-      - "3000:3000"
-      - "18000:18000"
-    environment:
-      BROKER_HOSTS: "broker:9092"
-      REGISTRY_URLS: "http://schema-registry:8081"
-      TOPIC_NAME: 'binarypackets'
-      RUN_MODE: 'P'
-      DATA_SELECTION: 'HL_*'
-      DATA_SERVER: 'rtserve.iris.washington.edu:18000'
-      DATA_LOCAL_FOLDER: 'data_producer_kafka_2'
-      START_SLEEP_SECONDS: 90
-#    volumes:
-#      - ${HOST_PARENT_FOLDER}/data_producer_kafka_2:/root/slinkkafka/data_producer_kafka_2
+#  # Example producer for ggkx (gnss real time positions).  connects to station 
+#  ggkx-producer:
+#    image: unavdocker/ccp_ggkx_producer:latest
+#    hostname: ggkx-producer
+#    restart: unless-stopped
+#    depends_on:
+#      - broker
+#      - schema-registry
+#    environment:
+#      BOOTSTRAP_SERVERS: "broker:9092"
+#      SCHEMA_REGISTRY_URL: "http://schema-registry:8081"
+#  
+#  # Example producer, connects to rtserve and pulls all stations data for HL network, produces as kafka messages to topic binarypackets
+#  slinkproducer:
+#    image: unavdocker/slinkproducer:v1
+#    hostname: slinkproducer
+#    container_name: slinkproducer-kafka-2
+#    depends_on:
+#      - broker
+#      - schema-registry
+#      - control-center
+#    ports:
+#      - "3000:3000"
+#      - "18000:18000"
+#    environment:
+#      BROKER_HOSTS: "broker:9092"
+#      REGISTRY_URLS: "http://schema-registry:8081"
+#      TOPIC_NAME: 'binarypackets'
+#      RUN_MODE: 'P'
+#      DATA_SELECTION: 'HL_*'
+#      DATA_SERVER: 'rtserve.iris.washington.edu:18000'
+#      DATA_LOCAL_FOLDER: 'data_producer_kafka_2'
+#      START_SLEEP_SECONDS: 90
+#  #  volumes:
+#  #    - ${HOST_PARENT_FOLDER}/data_producer_kafka_2:/root/slinkkafka/data_producer_kafka_2
   
   
   ###
