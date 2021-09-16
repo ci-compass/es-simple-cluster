@@ -192,6 +192,23 @@ services:
 #    # ports:
 #    #     - "9432:5432"
 
+  localstack:
+    image: localstack/localstack
+    ports:
+      - 4566:4566
+    environment:
+      - SERVICES=lambda,s3
+      - DEBUG=1
+      - DATA_DIR=/tmp/localstack/data
+      - LAMBDA_EXECUTOR=local
+      - LOCALSTACK_API_KEY=key123
+      - DOCKER_HOST=unix:///var/run/docker.sock
+      - HOST_TMP_FOLDER="${TMPDIR:-/tmp}/localstack"
+    volumes:
+      - "${TMPDIR:-/tmp}/localstack:/tmp/localstack"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+
+
   ###
   # Web stack
   ###
