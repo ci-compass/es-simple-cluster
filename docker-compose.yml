@@ -315,13 +315,6 @@ services:
       ZOOKEEPER_CONNECT: zookeeper
       KAFKA_BOOTSTRAP: kafka
 
-  mysql:
-    image: jark/mysql-example:0.2
-    ports:
-      - "3306:3306"
-    environment:
-      - MYSQL_ROOT_PASSWORD=123456
-
   zookeeper:
     image: wurstmeister/zookeeper:3.4.6
     ports:
