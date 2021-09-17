@@ -281,13 +281,18 @@ services:
     environment:
       FLINK_JOBMANAGER_HOST: jobmanager
       # TODO: need to specify different port to match the jobmanager web port 8083
+      # currently done by manually logging in by running
+      # docker-compose  exec sql-client /bin/bash
+      # and editing file /opt/flink/conf/flink-conf.yaml
+      # to add the parameter
+      # rest.port: 8083
       ZOOKEEPER_CONNECT: zookeeper
       KAFKA_BOOTSTRAP: broker
       MYSQL_HOST: mysql
       ES_HOST: elasticsearch
 
   jobmanager:
-    image: flink:1.11.0-scala_2.11
+    image: flink:1.13.2-scala_2.12-java8
     ports:
       - "8083:8083"
     command: jobmanager
@@ -299,7 +304,7 @@ services:
         jobmanager.web.port: 8083
 
   taskmanager:
-    image: flink:1.11.0-scala_2.11
+    image: flink:1.13.2-scala_2.12-java8
     depends_on:
       - jobmanager
     command: taskmanager
