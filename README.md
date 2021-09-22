@@ -11,6 +11,7 @@ From the root of this project run:
     docker compose up -d
 
 See [Installation](docs/Installation.md) for more.
+See [Notes for MacOS](docs/Installation.md#notesformacos) for MacOS variations.
 
 ## Services
 

@@ -14,7 +14,8 @@ From the base directory, run
 
 Check that the web front-end is running at http://localhost:8080/
 
-See [Installation](Installation) for more.
+See [Installation](Installation.md) for more.
+See [Notes for MacOS](Installation.md#notesformacos) for MacOS variations.
 
 ## How to use
 
