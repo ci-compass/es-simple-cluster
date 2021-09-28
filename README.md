@@ -35,6 +35,8 @@ Ideally, every available service should be included in this project, but for any
   - postgres database
 - **redis**
   - redis key/value store
+- **localstack**
+  - [local implementation](docs/localstack/) of AWS (S3, lambda, etc) services
 - **prometheus**
   - metrics backend
 - **grafana**
