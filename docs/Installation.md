@@ -37,3 +37,25 @@ Especially when running the first time, there are many things that might need in
 - **broker**
   - Sometimes fails saying that the broker id is bad
   - Clear the `kafka-data` volume, or disconnect the broker from it
+
+
+## <a id='notesformacos'>Notes for MacOS</a>
+
+Docker on MacOS is run on a lightweight VM called LinuxKit, which adds a layer of indirection when compared to a Docker on Linux installation. If performance or volume related questions occur on MacOS, it may be beneficial to re-run on a Linux machine to compare results with MacOS.
+
+ This note describes examples of MacOS differences. For more information, see [docker-for-mac](https://collabnix.com/how-docker-for-mac-works-under-the-hood/).
+
+- **volumes**
+  - The `docker info | grep "Root Dir"` command shows `Docker Root Dir: /var/lib/docker`, but `/var/lib/docker` will not be directly viewable in MacOS.
+  - The same for other Docker documentation references such as `/var/lib/docker/volumes`.
+  - to see these volumes; enter the LinuxVM with the following command: ([see reference](https://github.com/justincormack/nsenter1))
+  <pre>
+  # enter LinuxVM on MacOS
+  docker run -it --rm --privileged --pid=host justincormack/nsenter1<
+  # e.g. run this command to find total space (in MiB) used on all volumes
+  du -ms /var/lib/docker/volumes/
+  </pre>
+
+- **performance**
+  - A C program reading records from Kafka running on MacOS took around ~ 9 seconds for 145000 records. The same program running in a Docker container, on MacOS took around 10 times longer, i.e. ~ 100 seconds.
+  - A quick test running the same Docker image on a Linux machine ran in ~ 11 seconds. The slow Docker-on_MacOS run time was ignored in this case because Linux is the target operating environment.
