@@ -310,7 +310,7 @@ services:
       - jobmanager
     command: taskmanager
     volumes:
-      - ${PWD}/flink-taskmanager-log4j-console.properties:/opt/flink/conf/log4j-console.properties
+      - ${PWD}/flink/flink-taskmanager-log4j-console.properties:/opt/flink/conf/log4j-console.properties
     environment:
       - |
         FLINK_PROPERTIES=
