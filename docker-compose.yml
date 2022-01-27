@@ -334,15 +334,6 @@ services:
         jobmanager.rpc.address: jobmanager
         taskmanager.numberOfTaskSlots: 10
 
-  datagen:
-    image: jark/datagen:0.2
-    command: "java -classpath /opt/datagen/flink-sql-demo.jar myflink.SourceGenerator --input /opt/datagen/user_behavior.log --output kafka broker:9092 --speedup 2000"
-    depends_on:
-      - broker
-    environment:
-      ZOOKEEPER_CONNECT: zookeeper
-      KAFKA_BOOTSTRAP: broker
-
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:7.6.0
     environment:
