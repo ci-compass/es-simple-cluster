@@ -299,7 +299,7 @@ services:
     depends_on:
       - broker
       - jobmanager
-      - elasticsearch
+#      - elasticsearch
     environment:
       FLINK_JOBMANAGER_HOST: jobmanager
       FLINK_JOBMANAGER_REST_PORT: 8083
