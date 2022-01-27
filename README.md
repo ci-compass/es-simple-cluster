@@ -100,3 +100,11 @@ strain-producer - image contains sample gtsm bottle files, which it reads in and
 ggkx-producer - container connects to RT-GNSS GGKX stream (NTRIP Castor) for station P225 and produces 1 sample per second messages containing an epoch of data.  Uses all_GNSS_position_metadata.avsc schema, and includes original ggkx data and also maps to unified 'position' schema.
 
 slink-producer - connects to rtserve and produces packets from network code HL to topic 'binarypackets'
+
+## Flink Components
+
+ jobmanager - the endpoint to which apache flink jobs are submitted. the web frontend runs on port 8083 that you can access on the host machine (outside the docker network) via http://localhost:8083
+ 
+ taskmanager - the container to which the jobmanager farms out flink jobs. the parallelism of jobs is dictated by the number of slots made available 
+ 
+ sql-client - a vanilla flink container that serves as a standalone client to submit jobs to flink. In our setup, we use it to invoke  `flink-sql-client.sh` after logging in to get the flink sql command line client interface.
