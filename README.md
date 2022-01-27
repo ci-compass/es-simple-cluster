@@ -11,6 +11,7 @@ From the root of this project run:
     docker compose up -d
 
 See [Installation](docs/Installation.md) for more.
+See [Notes for MacOS](docs/Installation.md#notesformacos) for MacOS variations.
 
 ## Services
 
@@ -34,6 +35,8 @@ Ideally, every available service should be included in this project, but for any
   - postgres database
 - **redis**
   - redis key/value store
+- **localstack**
+  - [local implementation](docs/localstack/) of AWS (S3, lambda, etc) services
 - **prometheus**
   - metrics backend
 - **grafana**
