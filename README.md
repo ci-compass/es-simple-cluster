@@ -210,8 +210,8 @@ When we issued the select command, a flink job gets launched by the jobmanager, 
 
 You can navigate to http://localhost:8083 in your local web browser 
 
-![Apache Flink Dashboard](/images/flink-taskmanager.png)
+![Apache Flink Dashboard](/flink/images/flink-taskmanager.png)
 
 There you will see a job running. You can click on the job to get futher details
- ![Apache Flink Dashboard](/images/flink-taskmanager-running-job.png)
+ ![Apache Flink Dashboard](/flink/images/flink-taskmanager-running-job.png)
 
