@@ -108,3 +108,167 @@ slink-producer - connects to rtserve and produces packets from network code HL t
  taskmanager - the container to which the jobmanager farms out flink jobs. the parallelism of jobs is dictated by the number of slots made available 
  
  sql-client - a vanilla flink container that serves as a standalone client to submit jobs to flink. In our setup, we use it to invoke  `flink-sql-client.sh` after logging in to get the flink sql command line client interface.
+
+### Using Flink to query from Kafka topic using Flink SQL Client
+```bash 
+$ docker-compose  exec  sql-client /bin/bash
+
+root@4a339a52acba:/opt/flink# ls
+LICENSE  NOTICE  README.txt  bin  conf	examples  lib  licenses  log  opt  plugins  update_flink_install.sh
+```
+
+We now have to run a script that will update the flink install to download the relevant kafka jars that enable us to query kafka topics and also do schema registry validation
+
+```bash
+root@4a339a52acba:/opt/flink# ./update_flink_install.sh 
+...
+Saving to: ‘/opt/flink/lib/flink-sql-connector-kafka_2.11-1.14.2.jar’
+Saving to: ‘/opt/flink/lib/flink-sql-avro-confluent-registry-1.14.2.jar’
+```
+
+Now we can run the sql client to bring up the sql interface
+```bash
+root@4a339a52acba:/opt/flink# /opt/flink/bin/flink-sql-client.sh
+Command history file path: /root/.flink-sql-history
+
+                                   ▒▓██▓██▒
+                               ▓████▒▒█▓▒▓███▓▒
+                            ▓███▓░░        ▒▒▒▓██▒  ▒
+                          ░██▒   ▒▒▓▓█▓▓▒░      ▒████
+                          ██▒         ░▒▓███▒    ▒█▒█▒
+                            ░▓█            ███   ▓░▒██
+                              ▓█       ▒▒▒▒▒▓██▓░▒░▓▓█
+                            █░ █   ▒▒░       ███▓▓█ ▒█▒▒▒
+                            ████░   ▒▓█▓      ██▒▒▒ ▓███▒
+                         ░▒█▓▓██       ▓█▒    ▓█▒▓██▓ ░█░
+                   ▓░▒▓████▒ ██         ▒█    █▓░▒█▒░▒█▒
+                  ███▓░██▓  ▓█           █   █▓ ▒▓█▓▓█▒
+                ░██▓  ░█░            █  █▒ ▒█████▓▒ ██▓░▒
+               ███░ ░ █░          ▓ ░█ █████▒░░    ░█░▓  ▓░
+              ██▓█ ▒▒▓▒          ▓███████▓░       ▒█▒ ▒▓ ▓██▓
+           ▒██▓ ▓█ █▓█       ░▒█████▓▓▒░         ██▒▒  █ ▒  ▓█▒
+           ▓█▓  ▓█ ██▓ ░▓▓▓▓▓▓▓▒              ▒██▓           ░█▒
+           ▓█    █ ▓███▓▒░              ░▓▓▓███▓          ░▒░ ▓█
+           ██▓    ██▒    ░▒▓▓███▓▓▓▓▓██████▓▒            ▓███  █
+          ▓███▒ ███   ░▓▓▒░░   ░▓████▓░                  ░▒▓▒  █▓
+          █▓▒▒▓▓██  ░▒▒░░░▒▒▒▒▓██▓░                            █▓
+          ██ ▓░▒█   ▓▓▓▓▒░░  ▒█▓       ▒▓▓██▓    ▓▒          ▒▒▓
+          ▓█▓ ▓▒█  █▓░  ░▒▓▓██▒            ░▓█▒   ▒▒▒░▒▒▓█████▒
+           ██░ ▓█▒█▒  ▒▓▓▒  ▓█                █░      ░░░░   ░█▒
+           ▓█   ▒█▓   ░     █░                ▒█              █▓
+            █▓   ██         █░                 ▓▓        ▒█▓▓▓▒█░
+             █▓ ░▓██░       ▓▒                  ▓█▓▒░░░▒▓█░    ▒█
+              ██   ▓█▓░      ▒                    ░▒█▒██▒      ▓▓
+               ▓█▒   ▒█▓▒░                         ▒▒ █▒█▓▒▒░░▒██
+                ░██▒    ▒▓▓▒                     ▓██▓▒█▒ ░▓▓▓▓▒█▓
+                  ░▓██▒                          ▓░  ▒█▓█  ░░▒▒▒
+                      ▒▓▓▓▓▓▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒░░▓▓  ▓░▒█░
+          
+    ______ _ _       _       _____  ____  _         _____ _ _            _  BETA   
+   |  ____| (_)     | |     / ____|/ __ \| |       / ____| (_)          | |  
+   | |__  | |_ _ __ | | __ | (___ | |  | | |      | |    | |_  ___ _ __ | |_ 
+   |  __| | | | '_ \| |/ /  \___ \| |  | | |      | |    | | |/ _ \ '_ \| __|
+   | |    | | | | | |   <   ____) | |__| | |____  | |____| | |  __/ | | | |_ 
+   |_|    |_|_|_| |_|_|\_\ |_____/ \___\_\______|  \_____|_|_|\___|_| |_|\__|
+          
+        Welcome! Enter 'HELP;' to list all available commands. 'QUIT;' to exit.
+
+
+Flink SQL> 
+```
+
+We will now first create a SQL table that maps to the kafka topic `gtsm_etl` that we have . 
+To do issue the following commands in flink sql interface
+
+```sql
+Flink SQL> CREATE TABLE gtsm_etl (
+    
+    -- one column mapped to the 'id' Avro field of the Kafka key
+    `key_site` STRING,
+    
+    -- a few columns mapped to the Avro fields of the Kafka value
+    `timestamp` STRING
+    
+  ) WITH (
+  
+    'connector' = 'kafka',
+    'topic' = 'gtsm_etl',
+    'properties.bootstrap.servers' = 'broker:9092',
+  
+    -- Watch out: schema evolution in the context of a Kafka key is almost never backward nor
+    -- forward compatible due to hash partitioning.
+    'key.format' = 'avro-confluent',
+    'key.avro-confluent.url' = 'http://schema-registry:8081',
+    'key.fields' = 'key_site',
+  
+    -- In this example, we want the Avro types of both the Kafka key and value to contain the field 'id'
+    -- => adding a prefix to the table column associated to the Kafka key field avoids clashes
+    'key.fields-prefix' = 'key_',
+  
+    'value.format' = 'avro-confluent',
+    'value.avro-confluent.url' = 'http://schema-registry:8081',
+    'value.fields-include' = 'EXCEPT_KEY',
+    'properties.group.id' = 'testGroup',
+    'scan.startup.mode' = 'earliest-offset'
+     
+    -- subjects have a default value since Flink 1.13, though can be overriden:
+    -- 'key.avro-confluent.schema-registry.subject' = 'user_events_example2-key2',
+    -- 'value.avro-confluent.schema-registry.subject' = 'user_events_example2-value2'
+  );
+[INFO] Execute statement succeed.
+
+```
+
+Now we have a Flink SQL table that maps directly to query the Kafka topic `gtsm_etl`
+Lets query the table and retrieve the data from this topic
+
+```sql
+
+Flink SQL> select * from gtsm_etl;
+
+                      key_site                      timestamp
+                           B009            2021-07-01 16:50:00
+                           B009            2021-07-01 17:00:00
+                           B009            2021-07-01 17:10:00
+                           B009            2021-07-01 17:20:00
+                           B009            2021-07-01 17:30:00
+                           B009            2021-07-01 17:40:00
+                           B009            2021-07-01 17:50:00
+                           B009            2021-07-01 18:00:00
+                           B009            2021-07-01 18:10:00
+                           B009            2021-07-01 18:20:00
+                           B009            2021-07-01 18:30:00
+                           B009            2021-07-01 18:40:00
+                           B009            2021-07-01 18:50:00
+                           B009            2021-07-01 19:00:00
+                           B009            2021-07-01 19:10:00
+                           B009            2021-07-01 19:20:00
+                           B009            2021-07-01 19:30:00
+                           B009            2021-07-01 19:40:00
+                           B009            2021-07-01 19:50:00
+                           B009            2021-07-01 20:00:00
+                           B009            2021-07-01 20:10:00
+                           B009            2021-07-01 20:20:00
+                           B009            2021-07-01 20:30:00
+                           B009            2021-07-01 20:40:00
+                           B009            2021-07-01 20:50:00
+                           B009            2021-07-01 21:00:00
+                           B009            2021-07-01 21:10:00
+                           B009            2021-07-01 21:20:00
+                           B009            2021-07-01 21:30:00
+                           B009            2021-07-01 21:40:00
+                           B009            2021-07-01 21:50:00
+                           B009            2021-07-01 22:00:00
+                           B009            2021-07-01 22:10:00
+                           B009            2021-07-01 22:20:00
+                           B009            2021-07-01 22:30:00
+                           B009            2021-07-01 22:40:00
+                           B009            2021-07-01 22:50:00
+                           B009            2021-07-01 23:00:00
+                           B009            2021-07-01 23:10:00
+                           B009            2021-07-01 23:20:00
+                           B009            2021-07-01 23:30:00
+                           B009            2021-07-01 23:40:00
+                           B009            2021-07-01 23:50:00
+
+```
