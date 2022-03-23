@@ -203,3 +203,15 @@ Flink SQL> select * from gtsm_etl;
                            B009            2021-07-01 17:30:00
                            ....
 ```
+
+### Behind the scenes. 
+
+When we issued the select command, a flink job gets launched by the jobmanager, and the jobs run in the task manager container
+
+You can navigate to http://localhost:8083 in your local web browser 
+
+![Apache Flink Dashboard](/images/flink-taskmanager.png)
+
+There you will see a job running. You can click on the job to get futher details
+ ![Apache Flink Dashboard](/images/flink-taskmanager-running-job.png)
+
