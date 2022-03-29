@@ -126,169 +126,12 @@ services:
       BOOTSTRAP_SERVERS: "broker:9092"
       SCHEMA_REGISTRY_URL: "http://schema-registry:8081"
   
-#  # Example producer for ggkx (gnss real time positions).  connects to station 
-#  ggkx-producer:
-#    image: unavdocker/ccp_ggkx_producer:latest
-#    hostname: ggkx-producer
-#    restart: unless-stopped
-#    depends_on:
-#      - broker
-#      - schema-registry
-#    environment:
-#      BOOTSTRAP_SERVERS: "broker:9092"
-#      SCHEMA_REGISTRY_URL: "http://schema-registry:8081"
-#  
-#  # Example producer, connects to rtserve and pulls all stations data for HL network, produces as kafka messages to topic binarypackets
-#  slinkproducer:
-#    image: unavdocker/slinkproducer:v1
-#    hostname: slinkproducer
-#    container_name: slinkproducer-kafka-2
-#    depends_on:
-#      - broker
-#      - schema-registry
-#      - control-center
-#    ports:
-#      - "3000:3000"
-#      - "18000:18000"
-#    environment:
-#      BROKER_HOSTS: "broker:9092"
-#      REGISTRY_URLS: "http://schema-registry:8081"
-#      TOPIC_NAME: 'binarypackets'
-#      RUN_MODE: 'P'
-#      DATA_SELECTION: 'HL_*'
-#      DATA_SERVER: 'rtserve.iris.washington.edu:18000'
-#      DATA_LOCAL_FOLDER: 'data_producer_kafka_2'
-#      START_SLEEP_SECONDS: 90
-#  #  volumes:
-#  #    - ${HOST_PARENT_FOLDER}/data_producer_kafka_2:/root/slinkkafka/data_producer_kafka_2
-  
-  
-  ###
-  # Storage services
-  ###
-
-#  # Postgres database
-#  postgres:
-#    image: postgres
-#    volumes:
-#      - postgres-data:/var/lib/postgresql/data
-#    env_file:
-#      # see https://docs.docker.com/compose/environment-variables/#the-env_file-configuration-option
-#      - ./docker.env
-#    # ports:
-#    #   - 8432:5432
-#
-#  # Redis key/value store
-#  redis:
-#    image: redis
-#    # ports:
-#    #   - 6379:6379
-#
-#  # TimescaleDB
-#  timescaledb:
-#    image: timescale/timescaledb:latest-pg12
-#    environment:
-#        POSTGRES_PASSWORD: "password"
-#    # ports:
-#    #     - "9432:5432"
-
-  localstack:
-    image: localstack/localstack
-    ports:
-      - 4566:4566
-    environment:
-      - SERVICES=lambda,s3
-      - DEBUG=1
-      - DATA_DIR=/tmp/localstack/data
-      - LAMBDA_EXECUTOR=local
-      - LOCALSTACK_API_KEY=key123
-      - DOCKER_HOST=unix:///var/run/docker.sock
-      - HOST_TMP_FOLDER="${TMPDIR:-/tmp}/localstack"
-    volumes:
-      - "${TMPDIR:-/tmp}/localstack:/tmp/localstack"
-      - "/var/run/docker.sock:/var/run/docker.sock"
-
-
-  ###
-  # Web stack
-  ###
-
-#  # Web front-end
-#  web:
-#    image: nginx
-#    volumes:
-#      # Define a base nginx path in our subdirectory
-#      - ./nginx:/etc/nginx
-#      # Map the static subpath to a volume
-#      - web-static:/etc/nginx/html/static
-#    ports:
-#      # The main web interface
-#      - 8080:80
-#      # HTTPS
-#      - 8443:443
-#      # Super simple nginx server
-#      # - 8181:81
-#    depends_on:
-#      - django-web
-#
-#  # Vouch-proxy (CILogon integration with nginx)
-#  vouch-proxy:
-#    image: voucher/vouch-proxy:latest
-#    volumes:
-#      - ./vouch-proxy:/config
-#    # ports:
-#    #   - 9090:9090
-#
-#
-#  ###
-#  # Example python applications
-#  ###
-#
-#  # Example web interfaces (collection and distribution)
-#  django-web:
-#    # GitHub repository image
-#    image: ghcr.io/earthscope/es-example-django:main
-#    command: gunicorn -c ./gunicorn.conf.py
-#    volumes:
-#      # AVRO schemas
-#      - ./avro_schemas:/avro_schemas:ro
-#      # Static files area
-#      - web-static:/web-static
-#    env_file:
-#      # see https://docs.docker.com/compose/environment-variables/#the-env_file-configuration-option
-#      - ./docker.env
-#    # Local env on top of env_file
-#    environment:
-#      - DJANGO_PROMETHEUS=1
-#    ports:
-#      - 8100:8000
-#      - 9100:9000
-#
-#  # Example data archiver
-#  django-archiver:
-#    # GitHub repository image
-#    image: ghcr.io/earthscope/es-example-django:main
-#    command: python manage.py run_kafka_consumer
-#    depends_on:
-#      - broker
-#      - schema-registry
-#    volumes:
-#      # AVRO schemas
-#      - ./avro_schemas:/avro_schemas:ro
-#    env_file:
-#      # see https://docs.docker.com/compose/environment-variables/#the-env_file-configuration-option
-#      - ./docker.env
-#
-## Volumes are local by default, but could be backed by test/prod datasources
-#volumes:
-#  postgres-data:
-#  web-static:
-#  prometheus:
-#  grafana:
 
   ###
   # Apache Flink Web stack
   ###
+
+  
   sql-client:
     image: flink:1.14.2-scala_2.12-java8
     #   to make a shell available.
@@ -299,7 +142,6 @@ services:
     depends_on:
       - broker
       - jobmanager
-#      - elasticsearch
     environment:
       FLINK_JOBMANAGER_HOST: jobmanager
       FLINK_JOBMANAGER_REST_PORT: 8083
@@ -333,26 +175,3 @@ services:
         FLINK_PROPERTIES=
         jobmanager.rpc.address: jobmanager
         taskmanager.numberOfTaskSlots: 10
-
-#  elasticsearch:
-#    image: docker.elastic.co/elasticsearch/elasticsearch:7.6.0
-#    environment:
-#      - cluster.name=docker-cluster
-#      - bootstrap.memory_lock=true
-#      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-#      - discovery.type=single-node
-#    ports:
-#      - "9200:9200"
-#      - "9300:9300"
-#    ulimits:
-#      memlock:
-#        soft: -1
-#        hard: -1
-#      nofile:
-#        soft: 65536
-#        hard: 65536
-#
-#  kibana:
-#    image: docker.elastic.co/kibana/kibana:7.6.0
-#    ports:
-#      - "5601:5601"
