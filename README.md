@@ -1,4 +1,4 @@
-# es-simple-cluster
+# kafka-flink-cluster
 
 A multi-container cluster using docker-compose, including the basic services that are part of the EarthScope environment.
 
@@ -17,48 +17,26 @@ See [Notes for MacOS](docs/Installation.md#notesformacos) for MacOS variations.
 
 Ideally, every available service should be included in this project, but for any particular bit of development most of them should probably be commented out for size/performance.
 
-- **broker** (core)
+- **kafka-broker**  
   - Kafka broker
-- **zookeeper** (core)
+- **kafka-zookeeper**  
   - Kafka zookeeper
-- **schema-registry** (core)
+- **kafka-schema-registry**  
   - Kafka schema registry
-- **landoop topics UI** (core)
+- **landoop topics UI**  
   - Kafka topics UI
-- **landoop schema registry UI** (core)
+- **landoop schema registry UI**  
   - Kafka schema registry UI
-- **nginx** (core)
-  - external web interface
-- **vouch-proxy**
-  - provides [CILogon](https://cilogon.org/) authentication for the nginx server
-- **postgres**
-  - postgres database
-- **redis**
-  - redis key/value store
-- **localstack**
-  - [local implementation](docs/localstack/) of AWS (S3, lambda, etc) services
-- **prometheus**
-  - metrics backend
-- **grafana**
-  - metrics front end
-- **examples**
-  - some [example](docs/example/) functionality
-
+- **flink-sql-client**  
+  - Flink container to which we logon to in order to issue sql commands
+- **flink-jobmanager**  
+  - Jobmanager that schedules flink jobs
+- **flink-taskmanager**  
+  - Taskmanager on which flink jobs are executed
+  
 ## Volumes
 
 For the most part, you only need volumes when you want **persistent** or **shared** data.
-
-- **web-static**
-  - Static web content produced by Django, surfaced by nginx
-- **kafka-data**
-  - Data backend for the broker
-  - _Disabled by default_ to avoid kafka errors
-- **postgres-data**
-  - Storage for postgres
-- **prometheus**
-  - Storage for prometheus
-- **grafana**
-  - Storage for grafana (ie. user accounts, dashboards)
 
 ## /avro_schemas
 
@@ -76,8 +54,8 @@ This path typically gets passed to components like:
 Use the following to connect to kafka.
 
 For code running internal to docker-compose network
-BOOTSTRAP_SERVERS="broker:9092"
-SCHEMA_REGISTRY_URL="http://schema-registry:8081"
+BOOTSTRAP_SERVERS="kafka-broker:9092"
+SCHEMA_REGISTRY_URL="http://kafka-schema-registry:8081"
 
 Code running on local machine, not in docker-compose env
 BOOTSTRAP_SERVERS='localhost:19092'
@@ -96,10 +74,6 @@ localhost:8094
 ## Data collection prototype components so far
 
 strain-producer - image contains sample gtsm bottle files, which it reads in and produces to topic 'gtsm_etl' based on the schema 'gtsm_etl.avsc'.  container exits when done reading files.
-
-ggkx-producer - container connects to RT-GNSS GGKX stream (NTRIP Castor) for station P225 and produces 1 sample per second messages containing an epoch of data.  Uses all_GNSS_position_metadata.avsc schema, and includes original ggkx data and also maps to unified 'position' schema.
-
-slink-producer - connects to rtserve and produces packets from network code HL to topic 'binarypackets'
 
 ## Flink Components
 
