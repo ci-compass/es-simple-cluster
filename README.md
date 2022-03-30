@@ -19,6 +19,24 @@ This cluster setup is a simplified version of the setup developed jointly by SAG
 * Includes Landoop topics UI and landoop schema registry UI containers, allowing users to browse Kafka topics and schemas.
 * The producer is an example producer for strainmeter bottle files. It contains 1 Day, Hour, and Min file, which it reads, parses, and produces to the kafka topic gtsm_etl
 
+## Apache Kafka (Short Introduction)
+
+Apache Kafka is a distributed publish/subscribe system. The distribution of Kafka brokers (servers) makes it a reliable system. All messages persist on disk and are replicated in the Kafka cluster to prevent data loss. Apache Kafka is built on top of Apache ZooKeeper, which manages and coordinates all Kafka brokers. Thus, if one Kafka broker is lost, ZooKeeper coordinates tasks with other brokers to continue as is with no data loss or disruption.
+
+Apache Kafka Terms: 
+* **Producers** push data to brokers by publishing messages to one or more topics. 
+* **Consumers** read data from brokers by subscribing to one or more topics. 
+* **Topics** contain a stream of messages belonging to a particular category. 
+* Messages are ordered in a topic by its unique identifier, an **offset**
+* A topic can have a number of **partitions** to divide the data across. Any message containing a unique **key** will always be sent to the same partition to ensure order.
+* A **schema** can be applied to any topic to ensure a structured data format. This schema is versioned and can evolve over time.
+
+### Schema Registry
+This setup includes a Schema Registry alongside  Kafka data streaming model to ensure data coming into the platform is consistent. Attaching a schema to a topic forces producers and consumers to adhere to the defined format. Consumers can pull the schema from the Schema Registry and always be able to read the data pulled from a topic. Producers will not need to “inform” consumers about schema changes.
+
+The format and content of a particular type of data collection event message is defined by a **schema**. Kafka messages consist of **key-value** pairs.  Each data collection stream or event type will be required to have its own value schema, with an optional key schema as well.  The keys are used to logically distribute messages among partitions within a topic. Hence in our setup, we use a station identifier as a key in order to ensure all data for that station ends up on the same partition, and therefore consumed in order.
+
+
 
 ## Running in Docker Compose
 
