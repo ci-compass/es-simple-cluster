@@ -131,9 +131,10 @@ services:
   # Apache Flink Web stack
   ###
 
-  
-  sql-client:
+  # a flink container that is used to open the flink sql prompt
+  flink-sql-client:
     image: flink:1.14.2-scala_2.12-java8
+    hostname: flink-sql-client
     #   to make a shell available.
     #   we are not starting any service
     command: /bin/bash
@@ -141,9 +142,9 @@ services:
     tty: true        # docker run -t
     depends_on:
       - broker
-      - jobmanager
+      - flink-jobmanager
     environment:
-      FLINK_JOBMANAGER_HOST: jobmanager
+      FLINK_JOBMANAGER_HOST: flink-jobmanager
       FLINK_JOBMANAGER_REST_PORT: 8083
       ZOOKEEPER_CONNECT: zookeeper
       KAFKA_BOOTSTRAP: broker
@@ -151,27 +152,29 @@ services:
     volumes:
       - ./flink/update_flink_install.sh:/opt/flink/update_flink_install.sh
 
-  jobmanager:
+  flink-jobmanager:
     image: flink:1.14.2-scala_2.12-java8
+    hostname: flink-jobmanager
     ports:
       - "8083:8083"
     command: jobmanager
     environment:
       - |
         FLINK_PROPERTIES=
-        jobmanager.rpc.address: jobmanager
+        jobmanager.rpc.address: flink-jobmanager
         # added to bind to a different port
         jobmanager.web.port: 8083
 
-  taskmanager:
+  flink-taskmanager:
     image: flink:1.14.2-scala_2.12-java8
+    hostname: flink-taskmanager
     depends_on:
-      - jobmanager
+      - flink-jobmanager
     command: taskmanager
     volumes:
       - ${PWD}/flink/flink-taskmanager-log4j-console.properties:/opt/flink/conf/log4j-console.properties
     environment:
       - |
         FLINK_PROPERTIES=
-        jobmanager.rpc.address: jobmanager
+        jobmanager.rpc.address: flink-jobmanager
         taskmanager.numberOfTaskSlots: 10
