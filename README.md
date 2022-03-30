@@ -17,8 +17,8 @@ This cluster setup is a simplified version of the setup developed jointly by SAG
 * Setup relies on official Confluent Kafka and Flink container images, which make it easier to update to latest versions of containers by Confluent and Flink
 * Setup also includes Confluent Schema Registry that allows us to validate data against the schema.
 * Includes Landoop topics UI and landoop schema registry UI containers, allowing users to browse Kafka topics and schemas.
+* The producer is an example producer for strainmeter bottle files. It contains 1 Day, Hour, and Min file, which it reads, parses, and produces to the kafka topic gtsm_etl
 
-See [docs](docs/) for general documentation.
 
 ## Running in Docker Compose
 
