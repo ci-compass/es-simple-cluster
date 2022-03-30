@@ -113,24 +113,33 @@ See [Notes for MacOS](docs/Installation.md#notesformacos) for MacOS variations.
 
 ## Services
 
-Ideally, every available service should be included in this project, but for any particular bit of development most of them should probably be commented out for size/performance.
-
+Below is the list of various containers spun up and main ports to which they bind to.
+The hostname is the internal docker assigned hostname for the containers that can be used to access or ping a container when logged into another container of this setup
+ 
 - **kafka-broker**  
-  - Kafka broker
+  - Kafka broker bound to port 9092
+  - Hostname: kafka-broker
 - **kafka-zookeeper**  
-  - Kafka zookeeper
+  - Kafka zookeeper bound to port 2181
+  - Hostname: kafka-zookeeper
 - **kafka-schema-registry**  
-  - Kafka schema registry
+  - Kafka schema registry bound to port 8081
+  - Hostname: kafka-schema-registry
 - **landoop topics UI**  
-  - Kafka topics UI
+  - Kafka topics UI  viewable at http://localhost:8093
+  - Hostname: landoop-topics-ui
 - **landoop schema registry UI**  
-  - Kafka schema registry UI
+  - Kafka schema registry UI viewable at http://localhost:8094
+  - Hostname: landoop-schema-ui
 - **flink-sql-client**  
   - Flink container to which we logon to in order to issue sql commands
+  - Hostname: flink-sql-client
 - **flink-jobmanager**  
-  - Jobmanager that schedules flink jobs
+  - Jobmanager that schedules flink jobs. Flink Web Dashboard viewable http://localhost:8083 
+  - Hostname: flink-jobmanager
 - **flink-taskmanager**  
   - Taskmanager on which flink jobs are executed
+  - Hostname: flink-taskmanager
   
 ## Volumes
 
