@@ -162,12 +162,12 @@ Flink SQL> CREATE TABLE gtsm_etl (
   
     'connector' = 'kafka',
     'topic' = 'gtsm_etl',
-    'properties.bootstrap.servers' = 'broker:9092',
+    'properties.bootstrap.servers' = 'kafka-broker:9092',
   
     -- Watch out: schema evolution in the context of a Kafka key is almost never backward nor
     -- forward compatible due to hash partitioning.
     'key.format' = 'avro-confluent',
-    'key.avro-confluent.url' = 'http://schema-registry:8081',
+    'key.avro-confluent.url' = 'http://kafka-schema-registry:8081',
     'key.fields' = 'key_site',
   
     -- In this example, we want the Avro types of both the Kafka key and value to contain the field 'id'
@@ -175,7 +175,7 @@ Flink SQL> CREATE TABLE gtsm_etl (
     'key.fields-prefix' = 'key_',
   
     'value.format' = 'avro-confluent',
-    'value.avro-confluent.url' = 'http://schema-registry:8081',
+    'value.avro-confluent.url' = 'http://kafka-schema-registry:8081',
     'value.fields-include' = 'EXCEPT_KEY',
     'properties.group.id' = 'testGroup',
     'scan.startup.mode' = 'earliest-offset'

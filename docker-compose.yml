@@ -14,9 +14,9 @@ services:
   ###
 
   # Apache zookeeper does what now?
-  zookeeper:
+  kafka-zookeeper:
     image: confluentinc/cp-zookeeper:6.1.1
-    hostname: zookeeper
+    hostname: kafka-zookeeper
     ports:
       - "2181:2181"
     environment:
@@ -24,20 +24,20 @@ services:
       ZOOKEEPER_TICK_TIME: 2000
 
   # The kafka broker
-  broker:
+  kafka-broker:
     image: confluentinc/cp-server:6.1.1
-    hostname: broker
+    hostname: kafka-broker
     depends_on:
-      - zookeeper
+      - kafka-zookeeper
     ports:
       - "19092:19092"
       - "9092:9092"
       - "9101:9101"
     environment:
       KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+      KAFKA_ZOOKEEPER_CONNECT: 'kafka-zookeeper:2181'
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT,LOCAL:PLAINTEXT
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://broker:29092,PLAINTEXT_HOST://broker:9092, LOCAL://localhost:19092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-broker:29092,PLAINTEXT_HOST://kafka-broker:9092, LOCAL://localhost:19092
       KAFKA_METRIC_REPORTERS: io.confluent.metrics.reporter.ConfluentMetricsReporter
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
@@ -47,23 +47,23 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
       KAFKA_JMX_PORT: 9101
       KAFKA_JMX_HOSTNAME: localhost
-      KAFKA_CONFLUENT_SCHEMA_REGISTRY_URL: http://schema-registry:8081
-      CONFLUENT_METRICS_REPORTER_BOOTSTRAP_SERVERS: broker:29092
+      KAFKA_CONFLUENT_SCHEMA_REGISTRY_URL: http://kafka-schema-registry:8081
+      CONFLUENT_METRICS_REPORTER_BOOTSTRAP_SERVERS: kafka-broker:29092
       CONFLUENT_METRICS_REPORTER_TOPIC_REPLICAS: 1
       CONFLUENT_METRICS_ENABLE: 'true'
       CONFLUENT_SUPPORT_CUSTOMER_ID: 'anonymous'
 
   # Registry for kafka message schemas
-  schema-registry:
+  kafka-schema-registry:
     image: confluentinc/cp-schema-registry:6.1.1
     hostname: schema-registry
     depends_on:
-      - broker
+      - kafka-broker
     ports:
       - "8081:8081"
     environment:
-      SCHEMA_REGISTRY_HOST_NAME: schema-registry
-      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: 'broker:29092'
+      SCHEMA_REGISTRY_HOST_NAME: kafka-schema-registry
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: 'kafka-broker:29092'
       SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
 
 
@@ -74,19 +74,19 @@ services:
   ###
 
   # RESTful proxy for kafka
-  rest-proxy:
+  kafka-rest-proxy:
     image: confluentinc/cp-kafka-rest:6.1.1
-    hostname: rest-proxy
+    hostname: kafka-rest-proxy
     depends_on:
-      - broker
-      - schema-registry
+      - kafka-broker
+      - kafka-schema-registry
     ports:
       - 8082:8082
     environment:
-      KAFKA_REST_HOST_NAME: rest-proxy
-      KAFKA_REST_BOOTSTRAP_SERVERS: 'broker:29092'
+      KAFKA_REST_HOST_NAME: kafka-rest-proxy
+      KAFKA_REST_BOOTSTRAP_SERVERS: 'kafka-broker:29092'
       KAFKA_REST_LISTENERS: "http://0.0.0.0:8082"
-      KAFKA_REST_SCHEMA_REGISTRY_URL: 'http://schema-registry:8081'
+      KAFKA_REST_SCHEMA_REGISTRY_URL: 'http://kafka-schema-registry:8081'
 
   # viewable at localhost:8093
   landoop-topics-ui:
@@ -94,9 +94,9 @@ services:
     ports:
       - 8093:8000
     depends_on:
-      - rest-proxy
+      - kafka-rest-proxy
     environment:
-      KAFKA_REST_PROXY_URL: http://rest-proxy:8082
+      KAFKA_REST_PROXY_URL: http://kafka-rest-proxy:8082
       PROXY: 'true'
       
   # viewable at localhost:8094
@@ -105,10 +105,10 @@ services:
     ports:
       - 8094:8000
     depends_on:
-      - rest-proxy
-      - schema-registry
+      - kafka-rest-proxy
+      - kafka-schema-registry
     environment:
-      SCHEMAREGISTRY_URL: "http://schema-registry:8081"
+      SCHEMAREGISTRY_URL: "http://kafka-schema-registry:8081"
       PROXY: 'true'
 
   ###
@@ -120,11 +120,11 @@ services:
     image: unavdocker/strain_bottle_producer_prototype:latest
     hostname: strain-producer
     depends_on:
-      - broker
-      - schema-registry
+      - kafka-broker
+      - kafka-schema-registry
     environment:
-      BOOTSTRAP_SERVERS: "broker:9092"
-      SCHEMA_REGISTRY_URL: "http://schema-registry:8081"
+      BOOTSTRAP_SERVERS: "kafka-broker:9092"
+      SCHEMA_REGISTRY_URL: "http://kafka-schema-registry:8081"
   
 
   ###
@@ -141,13 +141,13 @@ services:
     stdin_open: true # docker run -i
     tty: true        # docker run -t
     depends_on:
-      - broker
+      - kafka-broker
       - flink-jobmanager
     environment:
       FLINK_JOBMANAGER_HOST: flink-jobmanager
       FLINK_JOBMANAGER_REST_PORT: 8083
-      ZOOKEEPER_CONNECT: zookeeper
-      KAFKA_BOOTSTRAP: broker
+      ZOOKEEPER_CONNECT: kafka-zookeeper
+      KAFKA_BOOTSTRAP: kafka-broker
       ES_HOST: elasticsearch
     volumes:
       - ./flink/update_flink_install.sh:/opt/flink/update_flink_install.sh
