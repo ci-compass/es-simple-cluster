@@ -31,12 +31,77 @@ Apache Kafka Terms:
 * A topic can have a number of **partitions** to divide the data across. Any message containing a unique **key** will always be sent to the same partition to ensure order.
 * A **schema** can be applied to any topic to ensure a structured data format. This schema is versioned and can evolve over time.
 
+For this example, we have an example producer that publishes to a topic named **gtsm_etl** . A message (truncated for brevity) published to this topic looks as follows
+
+```json
+{
+  "topic": "gtsm_etl",
+    "key": {
+      "site": "B009"
+    },
+    "value": {
+      "site": {
+        "string": "B009"
+      },
+      "time": null,
+      "timestamp": {
+        "string": "2021-07-01 00:00:00"
+      },
+      "rs1_t0": null,
+      "rs2_t0": null,
+      "rs3_t0": null,
+      "rs4_t0": null,
+      "ls1_t0": {
+        "int": 48116355
+      },
+      "ls2_t0": {
+        "int": 49196540
+      },
+      "bs1_t0": null,
+      "bs2_t0": null
+    },
+    "partition": 0,
+    "offset": 0
+}
+```
+
 ### Schema Registry
-This setup includes a Schema Registry alongside  Kafka data streaming model to ensure data coming into the platform is consistent. Attaching a schema to a topic forces producers and consumers to adhere to the defined format. Consumers can pull the schema from the Schema Registry and always be able to read the data pulled from a topic. Producers will not need to “inform” consumers about schema changes.
+This setup includes a Confluent Schema Registry alongside  Kafka data streaming model to ensure data coming into the platform is consistent. Attaching a schema to a topic forces producers and consumers to adhere to the defined format. Consumers can pull the schema from the Schema Registry and always be able to read the data pulled from a topic. Producers will not need to “inform” consumers about schema changes.
 
 The format and content of a particular type of data collection event message is defined by a **schema**. Kafka messages consist of **key-value** pairs.  Each data collection stream or event type will be required to have its own value schema, with an optional key schema as well.  The keys are used to logically distribute messages among partitions within a topic. Hence in our setup, we use a station identifier as a key in order to ensure all data for that station ends up on the same partition, and therefore consumed in order.
 
+The AVRO Schema for the key for the topic **gtsm_etl** is described in avro_schemas/gtsm_etl-key.avsc is shown below
+```json
+{
+  "type": "record",
+  "name": "gtsm_etl",
+  "namespace": "gtsm_etl",
+  "fields": [
+    {
+      "name": "site",
+      "type": "string",
+      "doc": "Four Character ID of Site"
+    }
+  ]
+}
+```
 
+The corresponding value schema is described in avro_schemas/gtsm_etl-value.avsc and a truncated version shown below
+```json
+avro_schemas/gtsm_etl-value.avsc 
+{
+            "namespace": "gtsm_etl",
+            "name": "gtsm_etl",
+            "type": "record",
+            "fields": [
+                {"name": "site", "type": ["string","null"], "doc":"four character id of site"},
+                {"name": "time", "type": ["long","null"], "logicaltype": "timestamp-millis", "doc":"unix epoch milliseconds timestamp"},
+                {"name": "timestamp", "type": ["string","null"], "doc":"yyyy-mm-dd hh:mm:ss.fff"},
+                {"name": "rs1_t0", "type": ["int","null"], "doc":"10 min strain counts ch0"},
+                {"name": "rs2_t0", "type": ["int","null"], "doc":"10 min strain counts ch1"}
+            ]
+}
+```
 
 ## Running in Docker Compose
 
