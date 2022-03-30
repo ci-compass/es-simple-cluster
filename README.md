@@ -1,6 +1,22 @@
+# A multi-container cluster setup using docker-compose that illustrates how to retrieve data from Apache Kafka into Apache Flink for processing
+
+**Karan Vahi<sup>1</sup>, Rachel Terry<sup>2</sup>, Michael Gottlieb<sup>2</sup>, Adam Clark<sup>3</sup>, Mike Stults<sup>3</sup>**
+
+**<sup>1</sup>University of Southern California**
+
+**<sup>2</sup>UNAVCO**
+
+**<sup>3</sup>Incorporated Research Institutions for Seismology**
+
+
+
 # kafka-flink-cluster
 
-A multi-container cluster using docker-compose, including the basic services that are part of the EarthScope environment.
+This cluster setup is a simplified version of the setup developed jointly by SAGE and GAGE for Data Collection as part of the EarthScope environment. The setup highlights on how to connect data coming from a topic in Apache Kafka and make it available for processing via Apache Flink.  This setup is also inspired from a similar blog [Flink SQL Demo: Building an End-to-End Streaming Application][1] on Apache Flink website. Some of the key differentiators in this setup from the Flink SQL Demo are
+
+* Setup relies on official Confluent Kafka and Flink container images, which make it easier to update to latest versions of containers by Confluent and Flink
+* Setup also includes Confluent Schema Registry that allows us to validate data against the schema.
+* Includes Landoop topics UI and landoop schema registry UI containers, allowing users to browse Kafka topics and schemas.
 
 See [docs](docs/) for general documentation.
 
@@ -189,3 +205,5 @@ You can navigate to http://localhost:8083 in your local web browser
 There you will see a job running. You can click on the job to get futher details
  ![Apache Flink Dashboard](/flink/images/flink-taskmanager-running-job.png)
 
+# References
+[1]: https://flink.apache.org/2020/07/28/flink-sql-demo-building-e2e-streaming-application.html "Flink SQL Demo: Building an End-to-End Streaming Application"
