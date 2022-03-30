@@ -88,7 +88,6 @@ The AVRO Schema for the key for the topic **gtsm_etl** is described in avro_sche
 
 The corresponding value schema is described in avro_schemas/gtsm_etl-value.avsc and a truncated version shown below
 ```json
-avro_schemas/gtsm_etl-value.avsc 
 {
             "namespace": "gtsm_etl",
             "name": "gtsm_etl",
@@ -137,7 +136,7 @@ Ideally, every available service should be included in this project, but for any
 
 For the most part, you only need volumes when you want **persistent** or **shared** data.
 
-## /avro_schemas
+## AVRO Schemas
 
 For now, AVRO schemas are shared through a file mount.
 
