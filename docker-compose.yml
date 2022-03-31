@@ -56,7 +56,7 @@ services:
   # Registry for kafka message schemas
   kafka-schema-registry:
     image: confluentinc/cp-schema-registry:6.1.1
-    hostname: schema-registry
+    hostname: kafka-schema-registry
     depends_on:
       - kafka-broker
     ports:
