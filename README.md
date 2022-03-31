@@ -245,7 +245,7 @@ Flink SQL> CREATE TABLE gtsm_etl (
     'connector' = 'kafka', -- using kafka connector
     'topic' = 'gtsm_etl',   -- kafka topic
     'properties.bootstrap.servers' = 'kafka-broker:9092', -- kafka broker address
-    'scan.startup.mode' = 'earliest-offset'  -- reading from the beginning
+    'scan.startup.mode' = 'earliest-offset',  -- reading from the beginning
   
     -- Watch out: schema evolution in the context of a Kafka key is almost never backward nor
     -- forward compatible due to hash partitioning.
