@@ -1,12 +1,12 @@
 # A multi-container cluster setup using docker-compose that illustrates how to retrieve data from Apache Kafka into Apache Flink for processing
 
-**Karan Vahi<sup>1</sup>, Rachel Terry<sup>2</sup>, Michael Gottlieb<sup>2</sup>, Adam Clark<sup>3</sup>, Mike Stults<sup>3</sup>**
+**Adam Clark<sup>1</sup>, Michael Gottlieb<sup>2</sup>, Rachel Terry<sup>2</sup>, Karan Vahi<sup>3</sup>, Mike Stults<sup>1</sup>**
 
-**<sup>1</sup>University of Southern California**
+**<sup>1</sup>Incorporated Research Institutions for Seismology**
 
 **<sup>2</sup>UNAVCO**
 
-**<sup>3</sup>Incorporated Research Institutions for Seismology**
+**<sup>3</sup>University of Southern California**
 
 
 
