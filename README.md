@@ -234,6 +234,7 @@ To do issue the following commands in flink sql interface
 Flink SQL> CREATE TABLE gtsm_etl (
     
     -- one column mapped to the 'id' Avro field of the Kafka key
+    -- in our example that filed is 'site'
     `key_site` STRING,
     
     -- a few columns mapped to the Avro fields of the Kafka value
@@ -241,25 +242,25 @@ Flink SQL> CREATE TABLE gtsm_etl (
     
   ) WITH (
   
-    'connector' = 'kafka',
-    'topic' = 'gtsm_etl',
-    'properties.bootstrap.servers' = 'kafka-broker:9092',
+    'connector' = 'kafka', -- using kafka connector
+    'topic' = 'gtsm_etl',   -- kafka topic
+    'properties.bootstrap.servers' = 'kafka-broker:9092', -- kafka broker address
+    'scan.startup.mode' = 'earliest-offset'  -- reading from the beginning
   
     -- Watch out: schema evolution in the context of a Kafka key is almost never backward nor
     -- forward compatible due to hash partitioning.
-    'key.format' = 'avro-confluent',
-    'key.avro-confluent.url' = 'http://kafka-schema-registry:8081',
+    'key.format' = 'avro-confluent',   -- we are using confluent schema registry to host the avro schemas
+    'key.avro-confluent.url' = 'http://kafka-schema-registry:8081', -- the url where the schema registry can be accessed
     'key.fields' = 'key_site',
   
-    -- In this example, we want the Avro types of both the Kafka key and value to contain the field 'id'
+    -- In this example, we want the Avro types of both the Kafka key and value to contain the field 'site'
     -- => adding a prefix to the table column associated to the Kafka key field avoids clashes
     'key.fields-prefix' = 'key_',
   
-    'value.format' = 'avro-confluent',
-    'value.avro-confluent.url' = 'http://kafka-schema-registry:8081',
+    'value.format' = 'avro-confluent', -- we are using confluent schema registry to host the avro schemas
+    'value.avro-confluent.url' = 'http://kafka-schema-registry:8081', -- the url where the schema registry can be accessed
     'value.fields-include' = 'EXCEPT_KEY',
-    'properties.group.id' = 'testGroup',
-    'scan.startup.mode' = 'earliest-offset'
+    'properties.group.id' = 'testGroup'
      
     -- subjects have a default value since Flink 1.13, though can be overriden:
     -- 'key.avro-confluent.schema-registry.subject' = 'user_events_example2-key2',
