@@ -299,3 +299,7 @@ There you will see a job running. You can click on the job to get futher details
 
 # References
 [1]: https://flink.apache.org/2020/07/28/flink-sql-demo-building-e2e-streaming-application.html "Flink SQL Demo: Building an End-to-End Streaming Application"
+
+1. "Flink SQL Demo: Building an End-to-End Streaming Application" https://flink.apache.org/2020/07/28/flink-sql-demo-building-e2e-streaming-application.html 
+
+2. "Confluent AVRO format in Flink" https://nightlies.apache.org/flink/flink-docs-release-1.14/docs/connectors/table/formats/avro-confluent/ 
